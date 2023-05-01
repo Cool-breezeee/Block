@@ -1,6 +1,7 @@
 package blc
 
 import (
+	"Block/model"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -125,17 +126,24 @@ func (bc *BlockChain) AddNewBlockToBlockChain(txs []*Transaction) error {
 // PrintChain 遍历输出所有区块的信息
 func (bc *BlockChain) PrintChain() {
 	blockChainIterator := bc.Iterator()
-	fmt.Println()
 	for {
 		block := blockChainIterator.Next()
-		fmt.Printf("Height = %d\n", block.BlockHeight)
-		fmt.Printf("PreBlockHash = %x\n", block.PrevBlockHash)
-		fmt.Printf("Ts = %s\n", time.UnixMilli(block.Timestamp).Format("2006-01-02 15:04:05.000"))
-		fmt.Printf("Hash = %x\n", block.Hash)
-		fmt.Printf("Nonce = %d\n", block.Nonce)
-		fmt.Println("Txs:")
+		var prevBlock model.PrintChainResponse
+		prevBlock.Height = block.BlockHeight
+		prevBlock.PreBlockHash = fmt.Sprintf("%x\n", block.PrevBlockHash)
+		prevBlock.Hash = fmt.Sprintf("%x\n", block.Hash)
+		prevBlock.Ts = time.UnixMilli(block.Timestamp).Format("2006-01-02 15:04:05.000")
+		prevBlock.Nonce = block.Nonce
+		//fmt.Printf("Height = %d\n", block.BlockHeight)
+		//fmt.Printf("PreBlockHash = %x\n", block.PrevBlockHash)
+		//fmt.Printf("Ts = %s\n", time.UnixMilli(block.Timestamp).Format("2006-01-02 15:04:05.000"))
+		//fmt.Printf("Hash = %x\n", block.Hash)
+		//fmt.Printf("Nonce = %d\n", block.Nonce)
+		//fmt.Println("Txs:")
 		for _, tx := range block.Txs {
-			fmt.Printf("%x\n", tx.TxHash)
+			var prevTx model.Transaction
+			prevTx.TxHash = fmt.Sprintf("%x\n", tx.TxHash)
+			//fmt.Printf("%x\n", tx.TxHash)
 			fmt.Println("VIns = ")
 			for _, in := range tx.VIns {
 				fmt.Printf("%x\n", in.TxHash)

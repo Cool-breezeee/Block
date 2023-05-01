@@ -5,10 +5,11 @@ import (
 	"Block/utils"
 	"flag"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"os"
 )
 
-type CLI struct {
+type cli struct {
 }
 
 func printUsage() {
@@ -19,6 +20,21 @@ func printUsage() {
 	fmt.Println("\tgetBalance -address 查询账户余额")
 }
 
+type CLI interface {
+	Transaction() gin.HandlerFunc
+	PrintChain() gin.HandlerFunc
+	GetBalance() gin.HandlerFunc
+	CreateBlockChain() gin.HandlerFunc
+}
+
+func (cli *cli) PrintChain() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		nodeId := ctx.Param("node_id")
+		fmt.Println(nodeId)
+		cli.printChain()
+	}
+}
+
 func isValidArgs() {
 	if len(os.Args) < 2 {
 		printUsage()
@@ -26,7 +42,7 @@ func isValidArgs() {
 	}
 }
 
-func (cli *CLI) addBlock(txs []*blc.Transaction) {
+func (cli *cli) addBlock(txs []*blc.Transaction) {
 	if blc.DBExists() {
 		blockChain := blc.GetBlockChainObject()
 		defer blockChain.DB.Close()
@@ -36,12 +52,12 @@ func (cli *CLI) addBlock(txs []*blc.Transaction) {
 		os.Exit(1)
 	}
 }
-func (cli *CLI) createBlockChain(address string) {
+func (cli *cli) createBlockChain(address string) {
 	blockChain := blc.CreateNewBlockChainWithGenesisBlock(address)
 	defer blockChain.DB.Close()
 }
 
-func (cli *CLI) getBalance(address string) {
+func (cli *cli) getBalance(address string) {
 	fmt.Println("地址 = ", address)
 	blockChain := blc.GetBlockChainObject()
 	defer blockChain.DB.Close()
@@ -52,7 +68,7 @@ func (cli *CLI) getBalance(address string) {
 }
 
 // 转账
-func (cli *CLI) send(from, to, amount []string) {
+func (cli *cli) send(from, to, amount []string) {
 	if !blc.DBExists() {
 		fmt.Println("请先调用 createBlockChain 创建区块链数据库")
 		os.Exit(1)
@@ -62,7 +78,7 @@ func (cli *CLI) send(from, to, amount []string) {
 	blockChain.MineNewBlock(from, to, amount)
 }
 
-func (cli *CLI) printChain() {
+func (cli *cli) printChain() {
 	if blc.DBExists() {
 		blockChain := blc.GetBlockChainObject()
 		defer blockChain.DB.Close()
@@ -74,7 +90,7 @@ func (cli *CLI) printChain() {
 
 }
 
-func (cli *CLI) Run() {
+func (cli *cli) Run() {
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printChain", flag.ExitOnError)
 	createBlockChainCmd := flag.NewFlagSet("createBlockChain", flag.ExitOnError)
